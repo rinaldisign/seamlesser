@@ -4,10 +4,10 @@ const S = { src: null, name: '', out: null, res: null, srcUrl: null, method: 'A'
 
 /* ---------- Metode (implementasi piksel deterministik, sRGB, alpha premultiplied) ---------- */
 const M = {
-  A: { n: 'A:マルチディレクショナル(おすすめ)', d: '水平・垂直を別々にブレンドし、順序に依存しない双線形の重みでコーナーも処理します。軸ごとに幅を変えられます。',
-    p: [['wx', '水平ブレンド幅 (%)', 5, 50, 14], ['wy', '垂直ブレンド幅 (%)', 5, 50, 14], ['s', '強度 (%)', 0, 100, 100], ['c', 'コーナー強度 (%)', 0, 100, 100]] },
-  B: { n: 'B:オフセット+フェザリング', d: '画像をラップアラウンドでずらし、端のゾーンを中央部分の内容でなじませます。結果は元の位置に戻り、外側の端がつながります。',
-    p: [['ox', '水平オフセット (%)', 0, 100, 50], ['oy', '垂直オフセット (%)', 0, 100, 50], ['w', 'フェザー幅 (%)', 5, 50, 25], ['s', '強度 (%)', 0, 100, 100]] }
+  A: { n: 'A: Multiarah (direkomendasikan)', d: 'Mencampur arah horizontal dan vertikal secara terpisah, serta menangani sudut dengan bobot bilinear yang tidak bergantung pada urutan. Lebar dapat diatur untuk setiap sumbu.',
+    p: [['wx', 'Lebar pencampuran horizontal (%)', 5, 50, 14], ['wy', 'Lebar pencampuran vertikal (%)', 5, 50, 14], ['s', 'Kekuatan (%)', 0, 100, 100], ['c', 'Kekuatan sudut (%)', 0, 100, 100]] },
+  B: { n: 'B: Pergeseran + pelembutan tepi', d: 'Menggeser gambar secara melingkar lalu memadukan area tepi dengan konten bagian tengah. Hasil dikembalikan ke posisi semula sehingga tepi luarnya tersambung.',
+    p: [['ox', 'Pergeseran horizontal (%)', 0, 100, 50], ['oy', 'Pergeseran vertikal (%)', 0, 100, 50], ['w', 'Lebar pelembutan tepi (%)', 5, 50, 25], ['s', 'Kekuatan (%)', 0, 100, 100]] }
 };
 const MAXH = 10, MAXPX = 4000; // riwayat maks. 10, sisi terpanjang hasil maks. 4000 px
 for (const k in M) S.p[k] = Object.fromEntries(M[k].p.map(a => [a[0], a[4]]));
@@ -109,11 +109,11 @@ function edge({ w, h, d }) {
 let tt; const toast = m => { const t = $('#toast'); t.textContent = m; t.classList.add('on'); clearTimeout(tt); tt = setTimeout(() => t.classList.remove('on'), 4500); };
 const kb = n => n > 1048576 ? (n / 1048576).toFixed(2) + ' MB' : Math.round(n / 1024) + ' KB';
 const toCanvas = o => { const c = document.createElement('canvas'); c.width = o.w; c.height = o.h; c.getContext('2d').putImageData(new ImageData(o.d, o.w, o.h), 0, 0); return c; };
-const blobOf = (c, t = 'image/png', q) => new Promise((ok, no) => c.toBlob(b => b ? ok(b) : no(new Error('このブラウザでは、この形式でエンコードできません。')), t, q));
+const blobOf = (c, t = 'image/png', q) => new Promise((ok, no) => c.toBlob(b => b ? ok(b) : no(new Error('Browser ini tidak dapat menyandikan gambar dalam format tersebut.')), t, q));
 
 /* ---------- Impor ---------- */
 async function load(f) {
-  if (!f) return toast('画像が選択されていません。');
+  if (!f) return toast('Belum ada gambar yang dipilih.');
   try {
     const bm = await createImageBitmap(f, { imageOrientation: 'from-image' });
     const c = document.createElement('canvas'); c.width = bm.width; c.height = bm.height;
@@ -122,9 +122,9 @@ async function load(f) {
     S.name = f.name.replace(/\.[^.]+$/, ''); if (S.srcUrl) URL.revokeObjectURL(S.srcUrl);
     S.srcUrl = URL.createObjectURL(f); S.out = S.res = S.base = S.rn = null; // buang hasil lama
     $('#thumb').src = S.srcUrl; $('#thumb').hidden = false; $('#go').disabled = false;
-    $('#meta').textContent = `${f.name}:${bm.width}×${bm.height} px, ${kb(f.size)}, ${f.type || '形式不明'}`;
+    $('#meta').textContent = `${f.name}:${bm.width}×${bm.height} px, ${kb(f.size)}, ${f.type || 'Format tidak diketahui'}`;
   } catch (e) {
-    toast(e instanceof RangeError ? '画像がブラウザのメモリに対して大きすぎます。より小さい画像をお試しください。' : '画像として読み込めませんでした。破損していない PNG、JPG、WebP を使用してください。');
+    toast(e instanceof RangeError ? 'Gambar terlalu besar untuk memori browser. Coba gunakan gambar yang lebih kecil.' : 'Gambar tidak dapat dimuat. Gunakan file PNG, JPG, atau WebP yang tidak rusak.');
   }
 }
 const drop = $('#drop');
@@ -150,15 +150,15 @@ const db = new Promise((ok, no) => { const r = indexedDB.open('sts', 1); r.onupg
 const tx = async (m, f) => { const d = await db; return new Promise((ok, no) => { const t = d.transaction('h', m), q = f(t.objectStore('h')); t.oncomplete = () => ok(q && q.result); t.onerror = no; }); };
 async function renderHist() {
   const all = ((await tx('readonly', s => s.getAll())) || []).sort((a, b) => b.id - a.id);
-  $('#hl').innerHTML = all.length ? all.map(i => `<li data-id="${i.id}"><img src="${i.thumb}" alt=""><span>${i.name}<small>${/^[ABC]$/.test(i.m) ? 'メソッド ' + (i.m === 'C' ? 'A' : i.m) : i.m}、${i.w}×${i.h}</small></span><button class="x" data-del="${i.id}" aria-label="${i.name} を削除">削除</button></li>`).join('') : '<li style="cursor:default">履歴はまだありません。作成した結果がここに表示されます。</li>';
+  $('#hl').innerHTML = all.length ? all.map(i => `<li data-id="${i.id}"><img src="${i.thumb}" alt=""><span>${i.name}<small>${/^[ABC]$/.test(i.m) ? 'Metode ' + (i.m === 'C' ? 'A' : i.m) : i.m}、${i.w}×${i.h}</small></span><button class="x" data-del="${i.id}" aria-label="${i.name} をHapus">Hapus</button></li>`).join('') : '<li style="cursor:default">Belum ada riwayat. Hasil yang dibuat akan muncul di sini.</li>';
 }
 async function saveHist(label) {
   const c = S.res, t = document.createElement('canvas'), r = 96 / Math.max(c.width, c.height); t.width = Math.max(1, c.width * r | 0); t.height = Math.max(1, c.height * r | 0);
   t.getContext('2d').drawImage(c, 0, 0, t.width, t.height);
-  try { const blob = await blobOf(c); await tx('readwrite', s => s.put({ id: Date.now(), name: S.name, m: label || S.method, w: c.width, h: c.height, thumb: t.toDataURL('image/jpeg', .7), blob })); const ks = (await tx('readonly', s => s.getAllKeys())) || []; for (const k of ks.slice(0, Math.max(0, ks.length - MAXH))) await tx('readwrite', s => s.delete(k)); renderHist(); } catch { toast('このブラウザでは履歴を保存できません。'); }
+  try { const blob = await blobOf(c); await tx('readwrite', s => s.put({ id: Date.now(), name: S.name, m: label || S.method, w: c.width, h: c.height, thumb: t.toDataURL('image/jpeg', .7), blob })); const ks = (await tx('readonly', s => s.getAllKeys())) || []; for (const k of ks.slice(0, Math.max(0, ks.length - MAXH))) await tx('readwrite', s => s.delete(k)); renderHist(); } catch { toast('Riwayat tidak dapat disimpan di browser ini.'); }
 }
 $('#hbtn').onclick = () => { $('#hist').classList.toggle('open'); renderHist(); };
-$('#hclr').onclick = async () => { await tx('readwrite', s => s.clear()); renderHist(); toast('履歴をすべて削除しました。'); };
+$('#hclr').onclick = async () => { await tx('readwrite', s => s.clear()); renderHist(); toast('Semua riwayat telah dihapus.'); };
 $('#hl').onclick = async e => {
   const del = e.target.dataset.del, li = e.target.closest('li[data-id]');
   if (del) { await tx('readwrite', s => s.delete(+del)); return renderHist(); }
@@ -223,8 +223,8 @@ async function showResult() {
   initTile(); if (T.tex) T.tex.dispose();
   T.tex = new THREE.CanvasTexture(S.res); T.tex.colorSpace = THREE.SRGBColorSpace; T.tex.wrapS = T.tex.wrapT = THREE.RepeatWrapping; T.tex.anisotropy = 8; T.mat.map = T.tex; T.mat.needsUpdate = true;
   const [a, b] = edgeC(S.res);
-  $('#diag').textContent = `端の差(左右 ${(a * 100).toFixed(2)}%、上下 ${(b * 100).toFixed(2)}%)。値が小さいほど端の色が近いことを示しますが、品質の評価値ではなく、端の内側のグラデーションが合うことも保証しません。`;
-  $('#dim').textContent = `出力サイズ:${S.res.width}×${S.res.height} px` + (!S.base || S.res === S.base ? '(元画像と同じ)' : `(ランダム化 ${S.rn}×${S.rn}、上限 ${MAXPX}px)`);
+  $('#diag').textContent = `Perbedaan tepi (kiri-kanan ${(a * 100).toFixed(2)}%, atas-bawah ${(b * 100).toFixed(2)}%). Nilai yang lebih kecil berarti warna tepi lebih mirip, tetapi ini bukan skor kualitas dan tidak menjamin gradasi di bagian dalam tepi akan cocok.`;
+  $('#dim').textContent = `Ukuran output: ${S.res.width}×${S.res.height} px` + (!S.base || S.res === S.base ? '(sama dengan gambar asli)' : `(pengacakan ${S.rn}×${S.rn}, maksimum ${MAXPX} px)`);
   const rb = await blobOf(S.res); if ($('#ia').dataset.u) URL.revokeObjectURL($('#ia').dataset.u); $('#ia').src = $('#ia').dataset.u = URL.createObjectURL(rb);
   $('#ib').src = S.srcUrl || ''; $('#mcmp').disabled = !S.srcUrl; $('#cr').oninput();
   setMode(S.rn || 3);
@@ -240,8 +240,8 @@ $('#exp').onclick = async () => {
     const x = c.getContext('2d'); if (j) { x.fillStyle = '#fff'; x.fillRect(0, 0, c.width, c.height); } x.drawImage(S.res, 0, 0);
     const b = await blobOf(c, j ? 'image/jpeg' : 'image/png', $('#q').value / 100), a = document.createElement('a');
     a.href = URL.createObjectURL(b); a.download = `${S.name}_seamless.${j ? 'jpg' : 'png'}`; a.click(); setTimeout(() => URL.revokeObjectURL(a.href), 4000);
-    $('#dim').textContent = `書き出し完了:${c.width}×${c.height} px、${kb(b.size)}`;
-  } catch (e) { toast('書き出しに失敗しました:' + e.message); }
+    $('#dim').textContent = `Ekspor selesai: ${c.width}×${c.height} px, ${kb(b.size)}`;
+  } catch (e) { toast('Ekspor gagal:' + e.message); }
 };
 
 /* ---------- Editor randomisasi ---------- */
@@ -249,7 +249,7 @@ const opts = () => ({ hm: +$('#hm').value, ha: +$('#ha').value, vm: +$('#vm').va
 async function drawEditor() {
   if (!S.base) return; const n = S.rn || 3, c = await compose(S.base, n, opts(), 1000), pc = $('#rc'), p = plan(n, S.base.width, S.base.height);
   pc.width = c.width; pc.height = c.height; pc.getContext('2d').drawImage(c, 0, 0);
-  $('#rsz').textContent = `出力サイズ:${p.W}×${p.H} px` + (p.k < 1 ? `(上限 ${MAXPX}px のため縮小)` : '(元画像の整数倍)');
+  $('#rsz').textContent = `Ukuran output: ${p.W}×${p.H} px` + (p.k < 1 ? `(diperkecil karena batas maksimum ${MAXPX} px)` : '(kelipatan bulat ukuran gambar asli)');
 }
 let rraf; const redraw = () => { cancelAnimationFrame(rraf); rraf = requestAnimationFrame(drawEditor); };
 function openEditor() { if (!S.base) S.base = S.res; $('#rn').textContent = `${S.rn || 3}×${S.rn || 3}`; redraw(); }
@@ -258,22 +258,22 @@ $('#shf').onclick = () => { $('#sd').value = Math.floor(Math.random() * 1e6); re
 $('#rnd').onclick = () => { S.rn = T.n; location.hash = '#/random'; };
 $('#rback').onclick = () => { location.hash = '#/result'; };
 $('#gen').onclick = async () => {
-  const b = $('#gen'), done = () => { b.disabled = false; b.textContent = '生成'; }; b.disabled = true;
-  try { const n = S.rn || 3; S.res = await compose(S.base, n, opts(), MAXPX, v => { b.textContent = `生成中… ${Math.round(v * 100)}%`; }); saveHist(`ランダム ${n}×${n}`); }
-  catch (e) { done(); return toast(e instanceof RangeError ? 'メモリが不足しています。タイル数を減らしてください。' : '生成に失敗しました:' + e.message); }
+  const b = $('#gen'), done = () => { b.disabled = false; b.textContent = 'Buat hasil'; }; b.disabled = true;
+  try { const n = S.rn || 3; S.res = await compose(S.base, n, opts(), MAXPX, v => { b.textContent = `Membuat hasil… ${Math.round(v * 100)}%`; }); saveHist(`Acak ${n}×${n}`); }
+  catch (e) { done(); return toast(e instanceof RangeError ? 'Memori tidak cukup. Kurangi jumlah ubin.' : 'Gagal membuat hasil:' + e.message); }
   done(); location.hash = '#/result';
 };
 
 /* ---------- Proses + router ---------- */
 $('#go').onclick = async () => {
-  if (!S.src) return toast('先に画像を選択してください。');
+  if (!S.src) return toast('Pilih gambar terlebih dahulu.');
   location.hash = '#/load'; B.p = B.tgt = 0; let real = 0, done = false; const t0 = performance.now();
   const upd = setInterval(() => { B.tgt = Math.min(real, (performance.now() - t0) / 3400); }, 30); // animasi minimal ±3,4 detik
   try {
     S.out = await run(S.src, S.method, { ...S.p[S.method] }, v => { real = v; });
     real = 1; while (B.p < .995) await new Promise(r => setTimeout(r, 50));
     S.res = toCanvas(S.out); S.out = null; S.base = S.rn = null; await sleep(600); location.hash = '#/result'; saveHist();
-  } catch (e) { toast(e instanceof RangeError ? 'ブラウザのメモリが不足しています。より小さい画像をお試しください。' : '処理に失敗しました:' + e.message); location.hash = '#/'; }
+  } catch (e) { toast(e instanceof RangeError ? 'Memori browser tidak cukup. Coba gunakan gambar yang lebih kecil.' : 'Pemrosesan gagal:' + e.message); location.hash = '#/'; }
   clearInterval(upd);
 };
 const sleep = ms => new Promise(r => setTimeout(r, ms));
@@ -288,7 +288,7 @@ addEventListener('hashchange', route); route();
 /* ---------- Loop render ---------- */
 function resize() { R.setPixelRatio(Math.min(devicePixelRatio, 2)); U.uPR.value = R.getPixelRatio(); R.setSize(innerWidth, innerHeight, false); cam.aspect = innerWidth / innerHeight; cam.updateProjectionMatrix(); if (S.res) fit(); }
 addEventListener('resize', resize); resize();
-const clk = new THREE.Clock(), msg = ['ピクセルを読み込み中', '端をずらしてブレンド中', 'コーナーをつなげています', '仕上げ中'];
+const clk = new THREE.Clock(), msg = ['Memuat piksel', 'Menggeser dan mencampur tepi', 'Menyambungkan sudut', 'Menyelesaikan proses'];
 (function frame() {
   U.uT.value = clk.getElapsedTime(); U.uM.value += ((B.mode === 'load' ? 1 : 0) - U.uM.value) * .025; // transisi partikel >2 dtk
   B.p += (B.tgt - B.p) * .05; U.uP.value = B.p; U.uMo.value.lerp(mouse, .08);
