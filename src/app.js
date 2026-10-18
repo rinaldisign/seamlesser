@@ -150,7 +150,7 @@ const db = new Promise((ok, no) => { const r = indexedDB.open('sts', 1); r.onupg
 const tx = async (m, f) => { const d = await db; return new Promise((ok, no) => { const t = d.transaction('h', m), q = f(t.objectStore('h')); t.oncomplete = () => ok(q && q.result); t.onerror = no; }); };
 async function renderHist() {
   const all = ((await tx('readonly', s => s.getAll())) || []).sort((a, b) => b.id - a.id);
-  $('#hl').innerHTML = all.length ? all.map(i => `<li data-id="${i.id}"><img src="${i.thumb}" alt=""><span>${i.name}<small>${/^[ABC]$/.test(i.m) ? 'Metode ' + (i.m === 'C' ? 'A' : i.m) : i.m}、${i.w}×${i.h}</small></span><button class="x" data-del="${i.id}" aria-label="${i.name} をHapus">Hapus</button></li>`).join('') : '<li style="cursor:default">Belum ada riwayat. Hasil yang dibuat akan muncul di sini.</li>';
+  $('#hl').innerHTML = all.length ? all.map(i => `<li data-id="${i.id}"><img src="${i.thumb}" alt=""><span>${i.name}<small>${/^[ABC]$/.test(i.m) ? 'Metode ' + (i.m === 'C' ? 'A' : i.m) : i.m} · ${i.w}×${i.h}</small></span><button class="x" data-del="${i.id}" aria-label="Hapus ${i.name}">Hapus</button></li>`).join('') : '<li style="cursor:default">Belum ada riwayat. Hasil yang dibuat akan muncul di sini.</li>';
 }
 async function saveHist(label) {
   const c = S.res, t = document.createElement('canvas'), r = 96 / Math.max(c.width, c.height); t.width = Math.max(1, c.width * r | 0); t.height = Math.max(1, c.height * r | 0);
@@ -300,13 +300,13 @@ const clk = new THREE.Clock(), msg = ['Memuat piksel', 'Menggeser dan mencampur 
   requestAnimationFrame(frame);
 })();
 
-/* ---------- PWA: インストール(タスクバーにピン留め)と Service Worker ---------- */
+/* ---------- PWA: instalasi (sematkan ke taskbar) dan Service Worker ---------- */
 let ip; addEventListener('beforeinstallprompt', e => { e.preventDefault(); ip = e; $('#inst').hidden = false; });
 $('#inst').onclick = async () => { if (!ip) return; ip.prompt(); await ip.userChoice; ip = null; $('#inst').hidden = true; };
 addEventListener('appinstalled', () => { $('#inst').hidden = true; });
 if ('serviceWorker' in navigator) addEventListener('load', () => navigator.serviceWorker.register('sw.js').catch(() => {}));
 
-/* ---------- 使い方パネル ---------- */
+/* ---------- Panel panduan penggunaan ---------- */
 const gd = $('#gd'), gOpen = o => { gd.classList.toggle('open', o); if (o) $('#gx').focus(); else $('#gbtn').focus(); };
 $('#gbtn').onclick = () => gOpen(true); $('#gx').onclick = () => gOpen(false);
 gd.addEventListener('click', e => { if (e.target === gd) gOpen(false); });

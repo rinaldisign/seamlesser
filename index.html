@@ -25,7 +25,7 @@
       <p>Mendukung PNG, JPG, WebP, BMP, dan GIF</p>
       <button id="pick" class="primary">Pilih gambar</button>
       <input id="file" type="file" accept="image/*" hidden>
-      <div id="pv"><span>Pratinjau</span><img id="thumb" alt="元画像のPratinjau" hidden></div>
+      <div id="pv"><span>Pratinjau</span><img id="thumb" alt="Pratinjau gambar asli" hidden></div>
       <p id="meta" class="note">Belum ada gambar yang dipilih</p>
     </div>
     <div class="glass panel">
@@ -56,12 +56,12 @@
     </div>
     <div class="stage glass" id="stage">
       <canvas id="tc"></canvas>
-      <div id="cmp" hidden><img id="ia" alt="Hasil"><img id="ib" alt="元画像"><input id="cr" type="range" min="0" max="100" value="50" aria-label="元画像とHasilのBandingkanスライダー"></div>
+      <div id="cmp" hidden><img id="ia" alt="Hasil"><img id="ib" alt="Gambar asli"><input id="cr" type="range" min="0" max="100" value="50" aria-label="Slider perbandingan gambar asli dan hasil"></div>
     </div>
     <div class="glass side">
       <h2>Pratinjau dan ekspor</h2>
       <p id="diag" class="note"></p>
-      <p class="note">タイルPratinjauはHasilのピクセルをそのまま繰り返しており、追加の補正はしていません。見た目が滑らかでも、すべての画像で完全に継ぎ目がなくなるとは限りません。</p>
+      <p class="note">Pratinjau ubin mengulang piksel hasil apa adanya tanpa koreksi tambahan. Meski terlihat mulus, tidak semua gambar dijamin bebas sambungan sepenuhnya.</p>
       <label>Format <select id="fmt"><option value="png">PNG (tanpa kehilangan kualitas)</option><option value="jpeg">JPEG</option></select></label>
       <label id="ql" hidden>Kualitas JPEG <input id="q" type="range" min="50" max="100" value="95"><output id="qo">95</output></label>
       <p id="fnote" class="note" hidden>JPEG tidak mendukung transparansi, sehingga bagian transparan akan diisi latar putih.</p>
@@ -70,11 +70,11 @@
     </div>
   </section>
   <section class="view" id="v-random">
-    <div class="glass bar2"><button id="rback" class="ghost">Kembali</button><b>Acakエディタ</b><span></span></div>
+    <div class="glass bar2"><button id="rback" class="ghost">Kembali</button><b>Editor pengacakan</b><span></span></div>
     <div class="stage glass"><canvas id="rc"></canvas></div>
     <div class="glass side">
       <h2>Susun ulang dengan menggeser ubin</h2>
-      <p class="note">Jumlah ubin:<b id="rn"></b>。Ubin digeser per baris dan kolom untuk mengurangi pola berulang.</p>
+      <p class="note">Jumlah ubin:<b id="rn"></b>. Ubin digeser per baris dan kolom untuk mengurangi pola berulang.</p>
       <label>Pergeseran horizontal (baris) <select id="hm"><option value="0">Tidak ada</option><option value="1">Bertahap</option><option value="2" selected>Acak</option></select></label>
       <label>Besaran (%) <input type="range" id="ha" min="0" max="100" value="50"><output>50</output></label>
       <label>Pergeseran vertikal (kolom) <select id="vm"><option value="0" selected>Tidak ada</option><option value="1">Bertahap</option><option value="2">Acak</option></select></label>
@@ -103,9 +103,9 @@
         <li><div><b>Buat tekstur</b><span>Klik “Buat tekstur” untuk memulai proses dan menampilkan animasi partikel. Setelah selesai, halaman hasil akan terbuka otomatis.</span></div></li>
         <li><div><b>Periksa hasil</b><span>“Hasil” menampilkan gambar pada ukuran asli. Tampilan “Ubin” menyusun gambar dalam pola 3×3, 5×5, atau 7×7 untuk memeriksa sambungan dan pola berulang. Gunakan roda mouse untuk memperbesar atau memperkecil, lalu seret untuk menggeser. “Bandingkan” memungkinkan Anda membandingkan gambar asli dan hasil menggunakan slider. Angka perbedaan tepi hanya sebagai panduan, bukan penilaian kualitas.</span></div></li>
         <li><div><b>Buat tampilan lebih alami dengan pengacakan (opsional)</b><span>Saat tampilan ubin aktif, klik “Acak” untuk membuka editor. Ubin digeser secara horizontal per baris dan vertikal per kolom, lalu sambungannya diperhalus dengan pencampuran batas. Klik “Kocok pola” untuk mencoba pola lain, lalu “Buat hasil” untuk kembali ke halaman hasil. Ukuran hasil merupakan kelipatan bulat dari gambar asli, hingga maksimum 4000 px.</span></div></li>
-        <li><div><b>Ekspor</b><span>Hasilページの右側で PNG か JPEG を選び、「Ekspor tekstur」を押します。JPEG は品質を選べますが、透明な部分は白で塗りつぶされます。ファイル名は「元の名前_seamless」になります。</span></div></li>
-        <li><div><b>Riwayatを使う</b><span>右上の「Riwayat」から、最近のHasilを開き直せます。保存されるのは最新 10 件で、古いものは自動で削除されます。「削除」や「Hapus semua」で消すこともできます。</span></div></li>
-        <li><div><b>Gunakan sebagai aplikasi (opsional)</b><span>Chrome や Edge では、右上の「Instal aplikasi」を押すとアプリとして追加できます。タスクバーにピン留めすると、すぐに開けます。</span></div></li>
+        <li><div><b>Ekspor</b><span>Di sisi kanan halaman hasil, pilih PNG atau JPEG, lalu klik “Ekspor tekstur”. Untuk JPEG, Anda dapat memilih kualitas gambar, tetapi bagian transparan akan diisi warna putih. Nama file akan menggunakan format “nama_asli_seamless”.</span></div></li>
+        <li><div><b>Menggunakan riwayat</b><span>Buka kembali hasil terbaru melalui tombol “Riwayat” di kanan atas. Maksimal 10 hasil terbaru akan disimpan; hasil yang lebih lama dihapus secara otomatis. Anda juga dapat menghapus satu hasil atau memilih “Hapus semua”.</span></div></li>
+        <li><div><b>Gunakan sebagai aplikasi (opsional)</b><span>Di Chrome atau Edge, klik “Instal aplikasi” di kanan atas untuk memasang web ini sebagai aplikasi. Sematkan ikonnya ke taskbar agar dapat dibuka dengan cepat.</span></div></li>
       </ol>
       <p class="note">Hasil yang sepenuhnya seamless tidak dapat dijamin. Beberapa gambar mungkin masih memiliki sambungan.</p>
   </div>
